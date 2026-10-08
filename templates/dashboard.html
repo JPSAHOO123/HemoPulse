@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-page-theme="indigo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('hemopulse_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <title>HemoPulse - User Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <canvas id="dashWallpaperCanvas"></canvas>
+
+    <div class="content-layer d-flex flex-column min-vh-100">
+
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-lp sticky-top">
+            <div class="container px-4">
+                <a class="brand-logo d-flex align-items-center" href="/">
+                    <span class="brand-icon"><i class="fas fa-heartbeat"></i></span>
+                    <span class="fw-bold">HemoPulse</span>
+                </a>
+
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">
+                        <i id="themeIcon" class="fas fa-moon text-theme"></i>
+                        <span id="themeText" class="d-none d-sm-inline">Dark Mode</span>
+                    </button>
+
+                    <button class="btn-theme-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideDrawer">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- DRAWER -->
+        <div class="offcanvas offcanvas-end drawer-panel" tabindex="-1" id="sideDrawer">
+            <div class="offcanvas-header drawer-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="brand-icon drawer-logo-icon"><i class="fas fa-heartbeat"></i></span>
+                    <h5 class="offcanvas-title drawer-title">HemoPulse Portal</h5>
+                </div>
+                <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="offcanvas"></button>
+            </div>
+
+            <div class="offcanvas-body p-4">
+                <div class="extra-small text-muted-custom fw-bold mb-3">SYSTEM MODULES</div>
+                <a href="/" class="drawer-link"><i class="fas fa-layer-group me-3 text-danger"></i> Home / Overview</a>
+                <a href="/connect-hospitals" class="drawer-link"><i class="fas fa-hospital me-3 text-info"></i> Connect Hospitals (B2B)</a>
+                <a href="/donate" class="drawer-link"><i class="fas fa-hand-holding-medical me-3 text-success"></i> Donate Blood</a>
+                <a href="/request_blood" class="drawer-link"><i class="fas fa-ambulance me-3 text-danger"></i> Emergency Request</a>
+                <a href="/vault" class="drawer-link"><i class="fas fa-database me-3 text-warning"></i> Active Vault</a>
+                <a href="/expired_vault" class="drawer-link"><i class="fas fa-history me-3 text-danger"></i> Expired Blood Vault</a>
+                <a href="/transactions" class="drawer-link"><i class="fas fa-file-invoice me-3 text-info"></i> Transaction Ledger</a>
+                <a href="/dashboard" class="drawer-link active"><i class="fas fa-user-shield me-3 text-theme"></i> My Profile & Honors</a>
+
+                <hr class="border-secondary opacity-25 my-4">
+
+                <div class="lp-card p-3 text-center">
+                    <p class="small text-muted-custom mb-2">User: <strong class="text-theme">{{ user.name if user.name else 'Guest' }}</strong></p>
+                    <a href="/logout" class="btn btn-outline-danger btn-sm w-100 rounded-3 py-2"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container py-4 my-auto">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'danger' else 'danger' }} alert-dismissible fade show bg-dark text-white border-{{ category }} mb-4 p-2 small" role="alert">
+                            <strong>Notification:</strong> {{ message }}
+                            <button type="button" class="btn-close btn-close-white p-2" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="lp-card mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h3 class="fw-bold mb-1">Welcome Back, {{ user.name if user.name else 'Donor' }} 👋</h3>
+                    <p class="text-muted-custom small mb-0">Manage your verified profile, health metrics, and official donor credentials.</p>
+                </div>
+                <a href="/logout" class="btn btn-outline-danger btn-sm rounded-pill px-3"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+            </div>
+
+            <!-- PROFILE & HEALTH ROW -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-5">
+                    <div class="lp-card h-100 p-4">
+                        <h5 class="fw-bold mb-4 text-theme"><i class="fas fa-user-circle me-2"></i>User Profile</h5>
+
+                        <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+                            <div class="avatar-circle fs-4 fw-bold text-theme d-flex align-items-center justify-content-center" style="width:48px; height:48px; border-radius:50%; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3);">
+                                {{ user.name[0].upper() if user.name else 'U' }}
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-white">{{ user.name if user.name else 'Not Provided' }}</h6>
+                                <span class="small text-muted-custom">{{ user.email if user.email else 'No email associated' }}</span>
+                            </div>
+                        </div>
+
+                        <form action="/dashboard" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label text-muted-custom extra-small mb-1">Full Name</label>
+                                <input type="text" name="name" class="form-control form-control-sm" placeholder="Enter Full Name" value="{{ user.name }}" required>
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label text-muted-custom extra-small mb-1">Age</label>
+                                    <input type="number" name="age" class="form-control form-control-sm" placeholder="Age" value="{{ user.age }}">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-muted-custom extra-small mb-1">Gender</label>
+                                    <select name="gender" class="form-select form-select-sm">
+                                        <option value="" {% if not user.gender %}selected{% endif %}>-- Select --</option>
+                                        <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
+                                        <option value="Other" {% if user.gender == 'Other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-muted-custom extra-small mb-1">Registered Blood Group</label>
+                                <select name="blood_group" class="form-select form-select-sm">
+                                    <option value="Not Set" {% if user.blood_group == 'Not Set' %}selected{% endif %}>-- Not Set --</option>
+                                    <option value="A+" {% if user.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                                    <option value="A-" {% if user.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                                    <option value="B+" {% if user.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                                    <option value="B-" {% if user.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                                    <option value="O+" {% if user.blood_group == 'O+' %}selected{% endif %}>O+</option>
+                                    <option value="O-" {% if user.blood_group == 'O-' %}selected{% endif %}>O-</option>
+                                    <option value="AB+" {% if user.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                                    <option value="AB-" {% if user.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn-lp-primary w-100 py-2 fw-bold fs-6">
+                                <i class="fas fa-save me-1"></i> Update Profile Data
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="lp-card h-100 p-4">
+                        <h5 class="fw-bold mb-4 text-theme"><i class="fas fa-notes-medical me-2"></i>Health & Eligibility Details</h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="p-3 text-center rounded-3" style="background: rgba(15, 18, 32, 0.4); border: 1px solid rgba(255, 255, 255, 0.08);">
+                                    <i class="fas fa-tint text-theme fs-3 mb-2"></i>
+                                    <div class="text-muted-custom extra-small">Blood Group</div>
+                                    <div class="fs-5 fw-bold mt-1 text-white">
+                                        {{ user.blood_group if user.blood_group and user.blood_group != 'Not Set' else 'Not Set' }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="p-3 text-center rounded-3" style="background: rgba(15, 18, 32, 0.4); border: 1px solid rgba(255, 255, 255, 0.08);">
+                                    <i class="fas fa-user-check text-warning fs-3 mb-2"></i>
+                                    <div class="text-muted-custom extra-small">Donor Status</div>
+                                    <div class="small fw-bold text-success mt-1">
+                                        {% if user.blood_group and user.blood_group != 'Not Set' %}
+                                            <i class="fas fa-check-circle me-1"></i> Fit to Donate
+                                        {% else %}
+                                            <span class="text-muted-custom">Pending Setup</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="p-3 text-center rounded-3" style="background: rgba(15, 18, 32, 0.4); border: 1px solid rgba(255, 255, 255, 0.08);">
+                                    <i class="fas fa-heartbeat text-theme fs-3 mb-2"></i>
+                                    <div class="text-muted-custom extra-small">Medical Clearance</div>
+                                    <div class="small fw-bold text-theme mt-1">
+                                        {{ 'Verified Clean' if user.blood_group and user.blood_group != 'Not Set' else 'Unverified' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-3" style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.25);">
+                            <h6 class="text-theme fw-bold mb-2"><i class="fas fa-shield-alt me-1"></i> Safety Protocols:</h6>
+                            <ul class="small text-muted-custom mb-0 ps-3">
+                                <li>Minimum donation gap: 90 days between whole blood donations.</li>
+                                <li>Ineligible conditions auto-screened: HIV/AIDS, Hepatitis B/C, Malaria, TB, Chronic conditions.</li>
+                                <li>All donations are logged into real-time Central Storage Vault FIFO queues.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CERTIFICATES TABLE -->
+            <div class="lp-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-white"><i class="fas fa-award text-warning me-2"></i>Your Vaulted Donations & Certificates</h5>
+                    <span class="badge-theme extra-small">Verified Lifesaver Records</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                        <thead>
+                            <tr class="text-muted-custom extra-small border-bottom border-secondary border-opacity-25">
+                                <th>TXN ID</th>
+                                <th>BLOOD GROUP</th>
+                                <th>COMPONENT TYPE</th>
+                                <th>UNITS</th>
+                                <th>DONATION DATE</th>
+                                <th>HONOR CREDENTIAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in user_donations %}
+                            <tr>
+                                <td class="fw-bold text-warning">#HP-TX-{{ item.id }}</td>
+                                <td><span class="badge bg-danger">{{ item.blood_group }}</span></td>
+                                <td>{{ item.component_type }}</td>
+                                <td class="fw-bold text-white">{{ item.units }} Unit(s)</td>
+                                <td class="text-muted-custom extra-small">{{ item.donation_date }}</td>
+                                <td>
+                                    <a href="/certificate/{{ item.id }}" target="_blank" class="btn btn-sm btn-outline-warning rounded-pill px-3 extra-small fw-bold">
+                                        <i class="fas fa-certificate me-1"></i> Download Certificate
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted-custom py-4">
+                                    <i class="fas fa-hand-holding-heart fs-3 mb-2 d-block opacity-50 text-theme"></i>
+                                    No donation history found yet. Make a donation to generate your official HemoPulse appreciation certificate!
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- STANDARDIZED UNIFORM FOOTER -->
+        <footer class="lp-footer mt-auto py-3">
+            <div class="container px-4">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="brand-icon" style="width:32px; height:32px; font-size:0.8rem;"><i class="fas fa-heartbeat"></i></span>
+                        <div>
+                            <span class="fw-bold fs-6 text-white">HemoPulse</span>
+                            <span class="text-muted-custom extra-small ms-2">| 24/7 Emergency Dispatch</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-4 extra-small">
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#aboutUsModal"><i class="fas fa-info-circle me-1 text-info"></i> About Us</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#connectUsModal"><i class="fas fa-headset me-1 text-danger"></i> Connect Us</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal"><i class="fas fa-user-shield me-1 text-success"></i> Privacy Policy</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#termsModal"><i class="fas fa-file-contract me-1 text-warning"></i> Terms of Service</a>
+                    </div>
+
+                    <div class="extra-small text-muted-custom">&copy; 2026 HemoPulse Ecosystem</div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal fade" id="aboutUsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-info"><i class="fas fa-info-circle me-2"></i>About HemoPulse</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p><strong>HemoPulse</strong> is an automated emergency healthcare response platform operating on strict First-In, First-Out (FIFO) inventory algorithms. It connects registered regional hospitals and voluntary donors into an integrated precision life-support grid.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="connectUsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content lp-card border-0 text-center p-3">
+                <div class="modal-header border-bottom border-secondary border-opacity-25 pb-2">
+                    <h5 class="modal-title fw-bold text-danger"><i class="fas fa-headset me-2"></i>HemoPulse Control Room</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small pt-3">
+                    <p class="text-muted-custom mb-1">24/7 Toll-Free Emergency Dispatch Hotline</p>
+                    <a href="tel:+916370133580" class="fw-bold text-danger fs-5 d-block text-decoration-none my-2">
+                        <i class="fas fa-phone-alt me-2"></i> 1800-889-7853
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="privacyPolicyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-success"><i class="fas fa-user-shield me-2"></i>Privacy Policy</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p>Donor medical records and emergency hospital dispatch logs are maintained under strict healthcare database encryption standards to ensure total confidentiality.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="termsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-warning"><i class="fas fa-file-contract me-2"></i>Terms of Service</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p>Voluntary blood donations and emergency dispatches are governed strictly by component shelf-life rules and verified hospital network requests.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            let currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            let newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hemopulse_theme', newTheme);
+            updateToggleUI(newTheme);
+        }
+
+        function updateToggleUI(theme) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (icon && text) {
+                if (theme === 'light') {
+                    icon.className = 'fas fa-sun text-warning'; text.innerText = 'Light Mode';
+                } else {
+                    icon.className = 'fas fa-moon text-theme'; text.innerText = 'Dark Mode';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeTheme = localStorage.getItem('hemopulse_theme') || 'dark';
+            updateToggleUI(activeTheme);
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/bg_animations.js') }}"></script>
+</body>
+</html>

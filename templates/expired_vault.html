@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-page-theme="orange">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('hemopulse_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <title>HemoPulse - Expired Stock (Quarantine Vault)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <canvas id="expiredWallpaperCanvas"></canvas>
+
+    <div class="content-layer d-flex flex-column min-vh-100">
+        
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-lp sticky-top">
+            <div class="container px-4">
+                <a class="brand-logo" href="/">
+                    <span class="brand-icon"><i class="fas fa-heartbeat"></i></span>
+                    <span>HemoPulse</span>
+                </a>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">
+                        <i id="themeIcon" class="fas fa-moon text-theme"></i>
+                        <span id="themeText" class="d-none d-sm-inline ms-1">Dark Mode</span>
+                    </button>
+
+                    <button class="btn-theme-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideDrawer">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- DRAWER -->
+        <div class="offcanvas offcanvas-end drawer-panel" tabindex="-1" id="sideDrawer">
+            <div class="offcanvas-header drawer-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="brand-icon drawer-logo-icon"><i class="fas fa-heartbeat"></i></span>
+                    <h6 class="offcanvas-title drawer-title mb-0">HemoPulse Portal</h6>
+                </div>
+                <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="offcanvas"></button>
+            </div>
+
+            <div class="offcanvas-body p-4">
+                <div class="extra-small text-muted-custom fw-bold mb-3">SYSTEM MODULES</div>
+                <a href="/" class="drawer-link"><i class="fas fa-layer-group me-3 text-danger"></i> Home / Overview</a>
+                <a href="/connect-hospitals" class="drawer-link"><i class="fas fa-hospital me-3 text-info"></i> Connect Hospitals (B2B)</a>
+                <a href="/donate" class="drawer-link"><i class="fas fa-hand-holding-medical me-3 text-success"></i> Donate Blood</a>
+                <a href="/request_blood" class="drawer-link"><i class="fas fa-ambulance me-3 text-danger"></i> Emergency FIFO Request</a>
+                <a href="/vault" class="drawer-link"><i class="fas fa-database me-3 text-warning"></i> Active Inventory Vault</a>
+                <a href="/expired_vault" class="drawer-link active"><i class="fas fa-history me-3 text-theme"></i> Expired Blood Vault</a>
+                <a href="/transactions" class="drawer-link"><i class="fas fa-file-invoice me-3 text-info"></i> Transaction Ledger</a>
+                <a href="/dashboard" class="drawer-link"><i class="fas fa-user-shield me-3 text-primary"></i> My Profile & Honors</a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTAINER -->
+        <div class="container py-5 my-auto">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <span class="badge-theme mb-2"><i class="fas fa-biohazard text-theme"></i> Decommissioned Stock</span>
+                    <h3 class="fw-bold text-theme mb-1"><i class="fas fa-biohazard me-2"></i>Expired Stock (Quarantine Vault)</h3>
+                    <p class="text-muted-custom small mb-0">Isolated unusable blood units automatically restricted from issuing to patients.</p>
+                </div>
+                <div>
+                    <span class="badge bg-warning text-dark px-3 py-2 fw-bold rounded-pill"><i class="fas fa-lock me-1"></i> Quarantine Lock Active</span>
+                </div>
+            </div>
+
+            <div class="lp-card mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted-custom fw-bold small text-uppercase">Total Unusable / Expired Units</span>
+                        <h2 class="fw-bold text-white mb-0 mt-1">{{ total_expired if total_expired else 0 }} <span class="fs-5 text-muted-custom">Units</span></h2>
+                    </div>
+                    <div class="p-3 rounded-circle bg-warning bg-opacity-10 text-theme fs-2"><i class="fas fa-trash-alt"></i></div>
+                </div>
+            </div>
+
+            <div class="lp-card">
+                <h6 class="fw-bold text-theme mb-3"><i class="fas fa-list me-2"></i>Quarantined Inventory List</h6>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                        <thead>
+                            <tr class="text-muted-custom small border-bottom border-secondary border-opacity-25">
+                                <th>VAULT ID</th>
+                                <th>BLOOD GROUP</th>
+                                <th>COMPONENT TYPE</th>
+                                <th>QUANTITY</th>
+                                <th>DONATION DATE</th>
+                                <th>EXPIRY DATE</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td class="fw-bold text-theme">#Q-{{ item.id }}</td>
+                                <td><span class="badge bg-danger">{{ item.blood_group }}</span></td>
+                                <td>{{ item.component_type }}</td>
+                                <td class="fw-bold text-white">{{ item.units }} Units</td>
+                                <td class="text-muted-custom small">{{ item.donated_date }}</td>
+                                <td class="text-theme fw-bold small">{{ item.expiry_date }}</td>
+                                <td><span class="badge bg-warning text-dark">Quarantined</span></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted-custom py-5">
+                                    <i class="fas fa-check-circle text-success fs-3 mb-2 d-block"></i>
+                                    <span class="fw-bold text-white">Great news! No expired blood stock in the vault right now.</span>
+                                    <div class="small text-muted-custom mt-1">All active units are within safe shelf-life limits.</div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- STANDARDIZED UNIFORM FOOTER -->
+        <footer class="lp-footer mt-auto py-3">
+            <div class="container px-4">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="brand-icon" style="width:32px; height:32px; font-size:0.8rem;"><i class="fas fa-heartbeat"></i></span>
+                        <div>
+                            <span class="fw-bold fs-6 text-white">HemoPulse</span>
+                            <span class="text-muted-custom extra-small ms-2">| 24/7 Emergency Dispatch</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-4 extra-small">
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#aboutUsModal"><i class="fas fa-info-circle me-1 text-info"></i> About Us</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#connectUsModal"><i class="fas fa-headset me-1 text-danger"></i> Connect Us</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal"><i class="fas fa-user-shield me-1 text-success"></i> Privacy Policy</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#termsModal"><i class="fas fa-file-contract me-1 text-warning"></i> Terms of Service</a>
+                    </div>
+
+                    <div class="extra-small text-muted-custom">&copy; 2026 HemoPulse Ecosystem</div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal fade" id="aboutUsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-info"><i class="fas fa-info-circle me-2"></i>About HemoPulse</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p><strong>HemoPulse</strong> isolates expired and non-compliant blood batches automatically into quarantine storage to maintain patient safety compliance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="connectUsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content lp-card border-0 text-center p-3">
+                <div class="modal-header border-bottom border-secondary border-opacity-25 pb-2">
+                    <h5 class="modal-title fw-bold text-danger"><i class="fas fa-headset me-2"></i>Control Room</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small pt-3">
+                    <p class="text-muted-custom mb-1">24/7 Toll-Free Emergency Helpline</p>
+                    <div class="fs-5 fw-bold text-white"><i class="fas fa-phone-alt text-danger me-2"></i>1800-889-7853</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="privacyPolicyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-success"><i class="fas fa-user-shield me-2"></i>Privacy Policy</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p>Medical data and quarantine logs are stored with strict encryption standards.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="termsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-warning"><i class="fas fa-file-contract me-2"></i>Terms of Service</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p>Quarantined stock is permanently de-allocated from clinical issue queues.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            let currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            let newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hemopulse_theme', newTheme);
+            updateToggleUI(newTheme);
+        }
+
+        function updateToggleUI(theme) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (icon && text) {
+                if (theme === 'light') {
+                    icon.className = 'fas fa-sun text-warning'; text.innerText = 'Light Mode';
+                } else {
+                    icon.className = 'fas fa-moon text-theme'; text.innerText = 'Dark Mode';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeTheme = localStorage.getItem('hemopulse_theme') || 'dark';
+            updateToggleUI(activeTheme);
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/bg_animations.js') }}"></script>
+</body>
+</html>

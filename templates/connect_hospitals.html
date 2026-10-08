@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-page-theme="cyan">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('hemopulse_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <title>HemoPulse - Connect Hospitals</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="content-layer d-flex flex-column min-vh-100">
+        
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-lp sticky-top">
+            <div class="container px-4">
+                <a class="brand-logo d-flex align-items-center" href="/">
+                    <span class="brand-icon"><i class="fas fa-heartbeat"></i></span>
+                    <span>HemoPulse</span>
+                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn-theme-toggle py-1 px-3" onclick="toggleTheme()">
+                        <i id="themeIcon" class="fas fa-moon text-theme"></i>
+                        <span id="themeText" class="d-none d-sm-inline">Dark Mode</span>
+                    </button>
+                    <button class="btn-theme-toggle py-1 px-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideDrawer">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- DRAWER -->
+        <div class="offcanvas offcanvas-end drawer-panel" tabindex="-1" id="sideDrawer">
+            <div class="offcanvas-header drawer-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="brand-icon drawer-logo-icon"><i class="fas fa-heartbeat"></i></span>
+                    <h5 class="offcanvas-title drawer-title">HemoPulse Portal</h5>
+                </div>
+                <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body p-4">
+                <div class="extra-small text-muted-custom fw-bold mb-3">SYSTEM MODULES</div>
+                <a href="/" class="drawer-link"><i class="fas fa-layer-group me-3 text-danger"></i> Home / Overview</a>
+                <a href="/connect-hospitals" class="drawer-link active"><i class="fas fa-hospital me-3 text-theme"></i> Connect Hospitals (B2B)</a>
+                <a href="/donate" class="drawer-link"><i class="fas fa-hand-holding-medical me-3 text-success"></i> Donate Blood</a>
+                <a href="/request_blood" class="drawer-link"><i class="fas fa-ambulance me-3 text-danger"></i> Emergency FIFO Request</a>
+                <a href="/vault" class="drawer-link"><i class="fas fa-database me-3 text-warning"></i> Active Inventory Vault</a>
+                <a href="/expired_vault" class="drawer-link"><i class="fas fa-history me-3 text-danger"></i> Expired Blood Vault</a>
+                <a href="/transactions" class="drawer-link"><i class="fas fa-file-invoice me-3 text-info"></i> Transaction Ledger</a>
+                <a href="/dashboard" class="drawer-link"><i class="fas fa-user-shield me-3 text-primary"></i> My Profile & Medical Log</a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTAINER -->
+        <div class="container py-4 my-auto">
+            <div class="text-center mb-4">
+                <span class="badge-theme extra-small mb-2"><i class="fas fa-network-wired me-1"></i> B2B Network Node</span>
+                <h3 class="fw-bold text-theme mb-1">Hospital Network Locator</h3>
+                <p class="text-muted-custom extra-small mb-0">Select state and district to search registered hospital nodes in alphabetical order.</p>
+            </div>
+
+            <div class="lp-card p-3 mb-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted-custom extra-small mb-1">Select State</label>
+                        <select id="stateSelect" class="form-select form-select-sm" onchange="loadDistricts()">
+                            <option value="">-- Choose State --</option>
+                            {% for state in states|sort %}
+                                <option value="{{ state }}">{{ state }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted-custom extra-small mb-1">Select District</label>
+                        <select id="districtSelect" class="form-select form-select-sm" onchange="loadHospitals()" disabled>
+                            <option value="">-- Choose District First --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lp-card p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0 text-main"><i class="fas fa-hospital-alt text-theme me-2"></i>Connected Hospitals</h5>
+                    <span id="nodeCount" class="badge bg-secondary extra-small">0 Nodes Found</span>
+                </div>
+                <div id="hospitalList" class="row g-3">
+                    <div class="col-12 text-center text-muted-custom py-4 extra-small">
+                        <i class="fas fa-search-location fa-2x mb-2 d-block opacity-50 text-theme"></i>
+                        Select state and district above to view hospital nodes.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="lp-footer mt-auto py-3">
+            <div class="container px-4">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="brand-icon" style="width:32px; height:32px; font-size:0.8rem;"><i class="fas fa-heartbeat"></i></span>
+                        <div>
+                            <span class="fw-bold fs-6 text-main">HemoPulse</span>
+                            <span class="text-muted-custom extra-small ms-2">| 24/7 Emergency Dispatch</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-4 extra-small">
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#aboutUsModal"><i class="fas fa-info-circle me-1 text-info"></i> About Us</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#connectUsModal"><i class="fas fa-headset me-1 text-danger"></i> Connect Us</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal"><i class="fas fa-user-shield me-1 text-success"></i> Privacy Policy</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#termsModal"><i class="fas fa-file-contract me-1 text-warning"></i> Terms of Service</a>
+                    </div>
+
+                    <div class="extra-small text-muted-custom">&copy; 2026 HemoPulse Ecosystem</div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal fade" id="aboutUsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-info"><i class="fas fa-info-circle me-2"></i>About HemoPulse</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body small" style="line-height:1.7;">
+                    <p><strong>HemoPulse</strong> connects registered regional hospitals and voluntary donors into an integrated precision life-support grid.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="connectUsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content lp-card border-0 text-center p-3">
+                <div class="modal-header border-bottom border-secondary border-opacity-25 pb-2">
+                    <h5 class="modal-title fw-bold text-danger"><i class="fas fa-headset me-2"></i>Control Room</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body small pt-3">
+                    <p class="text-muted-custom mb-1">24/7 Toll-Free Emergency Hotline</p>
+                    <div class="fs-5 fw-bold text-danger"><i class="fas fa-phone-alt me-2"></i>1800-889-7853</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="privacyPolicyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-success"><i class="fas fa-user-shield me-2"></i>Privacy Policy</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body small">
+                    <p>Medical data and hospital records are encrypted to healthcare security standards.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="termsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-warning"><i class="fas fa-file-contract me-2"></i>Terms of Service</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body small">
+                    <p>Hospital dispatch operations follow strict verification procedures.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            let currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            let newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hemopulse_theme', newTheme);
+            updateToggleUI(newTheme);
+        }
+
+        function updateToggleUI(theme) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (icon && text) {
+                if (theme === 'light') {
+                    icon.className = 'fas fa-sun text-warning'; text.innerText = 'Light Mode';
+                } else {
+                    icon.className = 'fas fa-moon text-theme'; text.innerText = 'Dark Mode';
+                }
+            }
+        }
+
+        // AUTO ALPHABETICAL DISTRICTS LOADER
+        async function loadDistricts() {
+            const state = document.getElementById('stateSelect').value;
+            const districtSelect = document.getElementById('districtSelect');
+            districtSelect.innerHTML = '<option value="">-- Choose District --</option>';
+            document.getElementById('hospitalList').innerHTML = '<div class="col-12 text-center text-muted-custom py-4 extra-small">Please select a district.</div>';
+            document.getElementById('nodeCount').innerText = "0 Nodes Found";
+            if (!state) { districtSelect.disabled = true; return; }
+
+            try {
+                const res = await fetch(`/api/get-districts/${encodeURIComponent(state)}`);
+                let districts = await res.json();
+                
+                // ALPHABETICAL (A to Z) SORT
+                districts.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+                districts.forEach(d => { 
+                    districtSelect.innerHTML += `<option value="${d}">${d}</option>`; 
+                });
+                districtSelect.disabled = false;
+            } catch (e) { 
+                console.error(e); 
+            }
+        }
+
+        // AUTO ALPHABETICAL HOSPITALS LOADER
+        async function loadHospitals() {
+            const state = document.getElementById('stateSelect').value;
+            const district = document.getElementById('districtSelect').value;
+            const listDiv = document.getElementById('hospitalList');
+            const nodeCount = document.getElementById('nodeCount');
+            if (!state || !district) return;
+
+            try {
+                const res = await fetch(`/api/get-hospitals/${encodeURIComponent(state)}/${encodeURIComponent(district)}`);
+                let hospitals = await res.json();
+                listDiv.innerHTML = '';
+                nodeCount.innerText = `${hospitals.length} Nodes Found`;
+                
+                if (hospitals.length === 0) {
+                    listDiv.innerHTML = '<div class="col-12 text-center text-muted-custom py-4 extra-small">No connected hospital nodes in this district.</div>';
+                    return;
+                }
+
+                // ALPHABETICAL (A to Z) SORT FOR HOSPITALS
+                hospitals.sort((a, b) => a.hospital_name.localeCompare(b.hospital_name, undefined, { sensitivity: 'base' }));
+
+                hospitals.forEach(h => {
+                    let googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.hospital_name + ', ' + district + ', ' + state)}`;
+                    listDiv.innerHTML += `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="lp-card p-3 h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <span class="badge-theme mb-2 extra-small"><i class="fas fa-hospital me-1"></i> Hospital Node</span>
+                                    <h6 class="fw-bold text-main mb-1">${h.hospital_name}</h6>
+                                    <p class="text-muted-custom extra-small mb-3"><i class="fas fa-map-marker-alt text-theme me-1"></i> ${district}, ${state}</p>
+                                </div>
+                                <div>
+                                    <a href="${googleMapsUrl}" target="_blank" class="btn btn-sm btn-lp-outline w-100 rounded-3 extra-small fw-bold">
+                                        <i class="fas fa-directions text-theme me-1"></i> Directions
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) { 
+                console.error(e); 
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeTheme = localStorage.getItem('hemopulse_theme') || 'dark';
+            updateToggleUI(activeTheme);
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

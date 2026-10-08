@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HemoPulse - Official Donor Certificate</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #060913;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 15px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #ffffff;
+        }
+
+        .cert-card {
+            width: 100%;
+            max-width: 920px;
+            background: linear-gradient(135deg, #0b1120 0%, #150f24 100%);
+            border: 8px solid #d4af37;
+            outline: 2px solid rgba(255, 42, 109, 0.4);
+            outline-offset: -14px;
+            border-radius: 24px;
+            padding: 55px 45px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.25), 0 20px 50px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+        }
+
+        .cert-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24rem;
+            color: rgba(255, 42, 109, 0.03);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .cert-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cert-title {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 4px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #f6d365 0%, #fda085 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .recipient-name {
+            font-family: 'Cinzel', serif;
+            font-size: 2.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid rgba(212, 175, 55, 0.6);
+            display: inline-block;
+            padding: 0 35px 6px 35px;
+            margin: 15px 0;
+        }
+
+        .gold-seal {
+            width: 95px;
+            height: 95px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #f9d976 0%, #e9b642 60%, #b8860b 100%);
+            border: 3px dashed #ffffff;
+            color: #1a1303;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.68rem;
+            font-weight: 800;
+            box-shadow: 0 0 25px rgba(233, 182, 66, 0.5);
+            text-transform: uppercase;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        .signature-line {
+            width: 190px;
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
+            margin: 0 auto;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #ff2a6d, #d90429);
+            color: #ffffff;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 30px;
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(255, 42, 109, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 42, 109, 0.6);
+            color: #ffffff;
+        }
+
+        @media print {
+            body { background: #ffffff !important; padding: 0 !important; color: #000000 !important; }
+            .no-print { display: none !important; }
+            .cert-card {
+                background: #0b1120 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                box-shadow: none !important;
+                max-width: 100% !important;
+                border: 6px solid #d4af37 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ACTION BUTTONS -->
+    <div class="no-print mb-4 d-flex gap-3">
+        <a href="/dashboard" class="btn btn-outline-light rounded-pill px-4"><i class="fas fa-arrow-left me-1"></i> Back to Dashboard</a>
+        <button onclick="window.print()" class="btn btn-print"><i class="fas fa-download me-2"></i> Print / Save as PDF</button>
+    </div>
+
+    <!-- CERTIFICATE CANVAS -->
+    <div class="cert-card">
+        <i class="fas fa-heartbeat cert-watermark"></i>
+        
+        <div class="cert-content text-center">
+            
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-4 text-danger"><i class="fas fa-heartbeat"></i></span>
+                    <span class="fw-bold fs-5 tracking-wide">HemoPulse Ecosystem</span>
+                </div>
+                <div class="small text-warning fw-bold text-uppercase" style="letter-spacing: 1.5px;">
+                    Government of Odisha Health Node
+                </div>
+            </div>
+
+            <!-- TITLE -->
+            <h6 class="text-uppercase text-warning small fw-bold mb-1" style="letter-spacing: 3px;">Official Recognition of Life Support</h6>
+            <h1 class="cert-title fs-2 mb-3">CERTIFICATE OF APPRECIATION</h1>
+            <p class="text-secondary small mb-1">PROUDLY PRESENTED TO</p>
+
+            <!-- DONOR NAME -->
+            <div class="recipient-name">{{ donation.person_name }}</div>
+
+            <!-- STATEMENT -->
+            <p class="text-light fs-6 mt-3 mb-2 mx-auto" style="max-width: 680px; line-height: 1.7;">
+                In grateful recognition of your voluntary contribution of <strong class="text-warning">{{ donation.units }} Unit(s)</strong> of <strong class="text-danger">[ {{ donation.blood_group }} - {{ donation.component_type }} ]</strong> blood credited directly to the HemoPulse Central Emergency Vault on <span class="text-warning fw-bold">{{ donation.formatted_date }}</span>.
+            </p>
+            <p class="text-secondary small fst-italic mb-5">
+                "Your selfless contribution bridges the gap between critical trauma emergencies and human life."
+            </p>
+
+            <!-- FOOTER BADGES -->
+            <div class="row align-items-center justify-content-between pt-2">
+                <div class="col-4 text-start">
+                    <div class="p-2 d-inline-block rounded bg-white text-dark mb-1">
+                        <i class="fas fa-qrcode fa-3x"></i>
+                    </div>
+                    <div class="small text-secondary font-monospace">ID: HP-CERT-2026-00{{ donation.id }}</div>
+                    <div class="small text-success fw-bold"><i class="fas fa-shield-alt me-1"></i> Verified Authentic Node</div>
+                </div>
+
+                <div class="col-4 d-flex justify-content-center">
+                    <div class="gold-seal">
+                        <i class="fas fa-award fs-3 mb-1"></i>
+                        VERIFIED<br>LIFESAVER
+                    </div>
+                </div>
+
+                <div class="col-4 text-end">
+                    <div class="mb-2 text-warning fst-italic fs-5">Dr. J.P.SAHOO</div>
+                    <div class="signature-line me-0"></div>
+                    <div class="small text-secondary mt-1">Authorized Medical Officer</div>
+                    <div class="small text-secondary">HemoPulse Central Blood Grid</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,481 @@
+/* =========================================================================
+   HEMOPULSE - ENTERPRISE CLINICAL HEALTHCARE UI SYSTEM (2026)
+   Complete Light & Dark Mode Auto-Sync (Zero Contrast / Color Bugs)
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* --- DARK MODE (DEFAULT: ELECTRIC CRIMSON) --- */
+:root {
+    --bg-main: #080c14;
+    --bg-surface: #0e1422;
+    --bg-elevated: #131b2e;
+    --nav-bg: rgba(8, 12, 20, 0.92);
+    --text-main: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    --accent-theme: #e11d48;
+    --accent-theme-deep: #be123c;
+    --accent-glow: rgba(225, 29, 72, 0.15);
+    
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-medium: rgba(255, 255, 255, 0.14);
+    --border-hover: rgba(225, 29, 72, 0.45);
+    
+    --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-btn: 0 2px 10px rgba(225, 29, 72, 0.3);
+    --gradient-brand: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+}
+
+/* 1. GREEN THEME (Donate Blood / Vault Storage) */
+[data-page-theme="green"] {
+    --accent-theme: #10b981;
+    --accent-theme-deep: #059669;
+    --accent-glow: rgba(16, 185, 129, 0.15);
+    --border-hover: rgba(16, 185, 129, 0.45);
+    --shadow-btn: 0 2px 10px rgba(16, 185, 129, 0.3);
+    --gradient-brand: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* 2. CYAN THEME (B2B Hospitals Grid) */
+[data-page-theme="cyan"] {
+    --accent-theme: #06b6d4;
+    --accent-theme-deep: #0891b2;
+    --accent-glow: rgba(6, 182, 212, 0.15);
+    --border-hover: rgba(6, 182, 212, 0.45);
+    --shadow-btn: 0 2px 10px rgba(6, 182, 212, 0.3);
+    --gradient-brand: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+/* 3. AMBER / GOLD (Inventory Vault) */
+[data-page-theme="amber"] {
+    --accent-theme: #f59e0b;
+    --accent-theme-deep: #d97706;
+    --accent-glow: rgba(245, 158, 11, 0.15);
+    --border-hover: rgba(245, 158, 11, 0.45);
+    --shadow-btn: 0 2px 10px rgba(245, 158, 11, 0.3);
+    --gradient-brand: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* 4. ORANGE (Quarantine Vault) */
+[data-page-theme="orange"] {
+    --accent-theme: #ea580c;
+    --accent-theme-deep: #c2410c;
+    --accent-glow: rgba(234, 88, 12, 0.15);
+    --border-hover: rgba(234, 88, 12, 0.45);
+    --shadow-btn: 0 2px 10px rgba(234, 88, 12, 0.3);
+    --gradient-brand: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+}
+
+/* 5. MAGENTA (Transaction Ledger) */
+[data-page-theme="magenta"] {
+    --accent-theme: #c026d3;
+    --accent-theme-deep: #9333ea;
+    --accent-glow: rgba(192, 38, 211, 0.15);
+    --border-hover: rgba(192, 38, 211, 0.45);
+    --shadow-btn: 0 2px 10px rgba(192, 38, 211, 0.3);
+    --gradient-brand: linear-gradient(135deg, #c026d3 0%, #9333ea 100%);
+}
+
+/* 6. INDIGO (Dashboard & Identity) */
+[data-page-theme="indigo"] {
+    --accent-theme: #6366f1;
+    --accent-theme-deep: #4f46e5;
+    --accent-glow: rgba(99, 102, 241, 0.15);
+    --border-hover: rgba(99, 102, 241, 0.45);
+    --shadow-btn: 0 2px 10px rgba(99, 102, 241, 0.3);
+    --gradient-brand: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+/* =========================================================================
+   LIGHT MODE OVERRIDES (CRISP CLINICAL WHITE & HIGH CONTRAST)
+   ========================================================================= */
+[data-theme="light"] {
+    --bg-main: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f1f5f9;
+    --nav-bg: rgba(255, 255, 255, 0.94);
+    --text-main: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --border-subtle: rgba(15, 23, 42, 0.08);
+    --border-medium: rgba(15, 23, 42, 0.14);
+    --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+}
+
+/* =========================================================================
+   GLOBAL RESET & LAYOUT
+   ========================================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at 50% 0%, var(--accent-glow) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+canvas { display: none !important; }
+
+.content-layer {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* TYPOGRAPHY */
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.text-theme { color: var(--accent-theme) !important; }
+.text-muted-custom { color: var(--text-secondary) !important; }
+.extra-small { font-size: 0.78rem; font-weight: 500; }
+
+/* FIX ALL TEXT-WHITE CLASSES IN LIGHT MODE */
+[data-theme="light"] .text-white,
+[data-theme="light"] .lp-footer .text-white,
+[data-theme="light"] .lp-card .text-white,
+[data-theme="light"] table .text-white {
+    color: #0f172a !important;
+}
+
+/* =========================================================================
+   NAVBAR
+   ========================================================================= */
+
+.navbar-lp {
+    background: var(--nav-bg) !important;
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle) !important;
+    padding: 12px 0 !important;
+    min-height: 64px;
+    z-index: 1030;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.brand-logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-main) !important;
+}
+
+.brand-icon {
+    width: 34px;
+    height: 34px;
+    background: var(--gradient-brand);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff !important;
+    margin-right: 10px;
+    box-shadow: 0 2px 8px var(--accent-glow);
+    font-size: 0.95rem;
+}
+
+.btn-theme-toggle {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-medium) !important;
+    color: var(--text-secondary) !important;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-theme-toggle:hover {
+    color: var(--text-main) !important;
+    border-color: var(--border-hover) !important;
+}
+
+/* =========================================================================
+   CARDS & CONTAINERS (AUTO LIGHT & DARK OVERRIDES)
+   ========================================================================= */
+
+.lp-card {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.lp-card:hover {
+    border-color: var(--border-hover) !important;
+}
+
+/* FIX INNER MINI STATS BOXES & ARCHITECTURE BOXES IN BOTH MODES */
+.lp-card div[style*="background: rgba(15, 18, 32"],
+.lp-card div[style*="background:rgba(15, 18, 32"],
+.lp-card div[style*="background: rgba(255, 255, 255, 0.03)"],
+.lp-card .bg-dark,
+.bg-dark {
+    background-color: var(--bg-elevated) !important;
+    border-color: var(--border-medium) !important;
+    color: var(--text-main) !important;
+}
+
+/* FIX PILLS INSIDE ARCHITECTURE BOXES (e.g. PRBC 42 Days / Audit tracking) */
+.lp-card div[style*="background: rgba(15, 18, 32"] .bg-black,
+.lp-card .bg-black,
+.bg-black {
+    background-color: var(--bg-surface) !important;
+    border-color: var(--border-medium) !important;
+}
+
+[data-theme="light"] .lp-card .bg-black {
+    background-color: #ffffff !important;
+}
+
+/* STATUS BADGES */
+.badge-theme {
+    background: rgba(225, 29, 72, 0.08) !important;
+    color: var(--accent-theme) !important;
+    border: 1px solid rgba(225, 29, 72, 0.2) !important;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* STAT PILLS */
+.vault-bg-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 14px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-elevated) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-medium) !important;
+    margin-bottom: 8px;
+}
+
+/* =========================================================================
+   FORM CONTROLS
+   ========================================================================= */
+
+.form-control, .form-select {
+    background-color: var(--bg-elevated) !important;
+    border: 1px solid var(--border-medium) !important;
+    color: var(--text-main) !important;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--accent-theme) !important;
+    box-shadow: 0 0 0 3px var(--accent-glow) !important;
+    outline: none;
+}
+
+/* =========================================================================
+   BUTTONS
+   ========================================================================= */
+
+.btn-lp-primary, 
+.btn-lp-crimson, 
+.btn-lp-pink, 
+.btn-magenta, 
+form button[type="submit"] {
+    background: var(--gradient-brand) !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.88rem !important;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: var(--shadow-btn) !important;
+    cursor: pointer !important;
+    transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+.btn-lp-primary:hover, 
+form button[type="submit"]:hover {
+    opacity: 0.94;
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+.btn-lp-outline {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.88rem;
+    border-radius: 8px;
+    padding: 10px 20px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.btn-lp-outline:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-hover);
+    color: var(--text-main);
+}
+
+/* =========================================================================
+   TABLES & LEDGERS
+   ========================================================================= */
+
+.table {
+    color: var(--text-main) !important;
+}
+
+.table-dark {
+    --bs-table-bg: transparent !important;
+    --bs-table-color: var(--text-main) !important;
+}
+
+.table th {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-muted) !important;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    padding: 12px 14px;
+}
+
+.table td {
+    padding: 14px;
+    font-size: 0.88rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+/* =========================================================================
+   DRAWER & MODAL SHEETS
+   ========================================================================= */
+
+.drawer-panel {
+    background-color: var(--bg-surface) !important;
+    border-left: 1px solid var(--border-medium) !important;
+    z-index: 1045 !important;
+}
+
+.drawer-header {
+    border-bottom: 1px solid var(--border-subtle) !important;
+    padding: 16px 20px !important;
+}
+
+.drawer-title {
+    color: var(--text-main) !important;
+    font-weight: 700;
+}
+
+[data-theme="dark"] .drawer-close-btn { filter: invert(1) grayscale(100%) brightness(200%) !important; }
+[data-theme="light"] .drawer-close-btn { filter: none !important; }
+
+.drawer-link {
+    display: flex;
+    align-items: center;
+    padding: 11px 14px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.88rem;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    transition: all 0.15s ease;
+}
+
+.drawer-link:hover {
+    background: var(--bg-elevated);
+    color: var(--text-main);
+}
+
+.drawer-link.active {
+    background: rgba(225, 29, 72, 0.08) !important;
+    color: var(--accent-theme) !important;
+    font-weight: 600;
+    border: 1px solid rgba(225, 29, 72, 0.2);
+}
+
+/* =========================================================================
+   FOOTER
+   ========================================================================= */
+
+.lp-footer {
+    border-top: 1px solid var(--border-subtle) !important;
+    padding: 14px 0;
+    margin-top: auto;
+    background: var(--nav-bg) !important;
+    transition: background-color 0.2s ease;
+}
+
+.lp-footer span,
+.lp-footer div {
+    color: var(--text-secondary);
+}
+
+.footer-link-active {
+    color: var(--text-secondary) !important;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.82rem;
+    transition: color 0.15s ease;
+}
+
+.footer-link-active:hover {
+    color: var(--text-main) !important;
+}

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('hemopulse_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <title>HemoPulse - Emergency Blood Request</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <canvas id="requestWallpaperCanvas"></canvas>
+
+    <div class="content-layer d-flex flex-column min-vh-100">
+        
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-lp sticky-top">
+            <div class="container px-4">
+                <a class="brand-logo" href="/">
+                    <span class="brand-icon"><i class="fas fa-heartbeat"></i></span>
+                    <span>HemoPulse</span>
+                </a>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">
+                        <i id="themeIcon" class="fas fa-moon text-theme"></i>
+                        <span id="themeText" class="d-none d-sm-inline ms-1">Dark Mode</span>
+                    </button>
+
+                    <button class="btn-theme-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideDrawer">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- DRAWER -->
+        <div class="offcanvas offcanvas-end drawer-panel" tabindex="-1" id="sideDrawer">
+            <div class="offcanvas-header drawer-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="brand-icon drawer-logo-icon"><i class="fas fa-heartbeat"></i></span>
+                    <h6 class="offcanvas-title drawer-title mb-0">HemoPulse Portal</h6>
+                </div>
+                <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="offcanvas"></button>
+            </div>
+
+            <div class="offcanvas-body p-4">
+                <div class="extra-small text-muted-custom fw-bold mb-3">SYSTEM MODULES</div>
+                <a href="/" class="drawer-link"><i class="fas fa-layer-group me-3 text-danger"></i> Home / Overview</a>
+                <a href="/connect-hospitals" class="drawer-link"><i class="fas fa-hospital me-3 text-info"></i> Connect Hospitals (B2B)</a>
+                <a href="/donate" class="drawer-link"><i class="fas fa-hand-holding-medical me-3 text-success"></i> Donate Blood</a>
+                <a href="/request_blood" class="drawer-link active"><i class="fas fa-ambulance me-3 text-danger"></i> Emergency FIFO Request</a>
+                <a href="/vault" class="drawer-link"><i class="fas fa-database me-3 text-warning"></i> Active Inventory Vault</a>
+                <a href="/expired_vault" class="drawer-link"><i class="fas fa-history me-3 text-danger"></i> Expired Blood Vault</a>
+                <a href="/transactions" class="drawer-link"><i class="fas fa-file-invoice me-3 text-info"></i> Transaction Ledger</a>
+                <a href="/dashboard" class="drawer-link"><i class="fas fa-user-shield me-3 text-primary"></i> My Profile & Honors</a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTAINER -->
+        <div class="container py-5 my-auto">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category if category != 'danger' else 'danger' }} alert-dismissible fade show mb-4 small" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="lp-card">
+                        <div class="text-center mb-4">
+                            <span class="badge-theme mb-2">
+                                <i class="fas fa-bolt"></i> Emergency Order Dispatch
+                            </span>
+                            <h3 class="fw-bold mt-2 text-theme">Emergency Blood Request</h3>
+                            <p class="text-muted-custom small mb-0">Saving Lives with Precision Vaulting.</p>
+                        </div>
+
+                        <form action="/request_blood" method="POST">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted-custom small">Patient Full Name</label>
+                                    <input type="text" name="patient_name" class="form-control" placeholder="Enter Patient Name" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted-custom small">Required Blood Group</label>
+                                    <select name="blood_group" class="form-select" required>
+                                        <option value="A+">A+</option><option value="A-">A-</option>
+                                        <option value="B+">B+</option><option value="B-">B-</option>
+                                        <option value="O+">O+</option><option value="O-">O-</option>
+                                        <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted-custom small">Component Type Needed</label>
+                                    <select name="component_type" class="form-select" required>
+                                        <option value="Packed Red Blood Cells (RBC)">Packed Red Blood Cells (RBC)</option>
+                                        <option value="Platelets">Platelets</option>
+                                        <option value="Fresh Frozen Plasma (FFP)">Fresh Frozen Plasma (FFP)</option>
+                                        <option value="Whole Blood">Whole Blood</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted-custom small">Units Needed</label>
+                                    <input type="number" name="units_needed" class="form-control" min="1" value="1" required>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label text-muted-custom small">Select Destination Hospital</label>
+                                    <select name="hospital_id" class="form-select" required>
+                                        <option value="">-- Choose Target Hospital --</option>
+                                        {% for h in hospitals %}
+                                            <option value="{{ h.id }}">{{ h.hospital_name }} ({{ h.district }})</option>
+                                        {% else %}
+                                            <option value="1">District Headquarters Hospital (DHH) Dhenkanal</option>
+                                            <option value="2">AIIMS Bhubaneswar Emergency ICU</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="p-3 rounded-3 my-4" style="background: rgba(255, 42, 109, 0.08); border: 1px solid rgba(255, 42, 109, 0.25);">
+                                <div class="small text-theme fw-bold mb-1"><i class="fas fa-shield-alt me-1"></i> FIFO Dispatch Guarantee:</div>
+                                <div class="small text-muted-custom">Units nearest to expiry are automatically debited first to maintain 100% freshness compliance.</div>
+                            </div>
+
+                            <button type="submit" class="btn-lp-primary w-100 py-3 fw-bold fs-6">
+                                <i class="fas fa-paper-plane me-2"></i> Execute Immediate Dispatch Request
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STANDARDIZED UNIFORM FOOTER -->
+        <footer class="lp-footer mt-auto py-3">
+            <div class="container px-4">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="brand-icon" style="width:32px; height:32px; font-size:0.8rem;"><i class="fas fa-heartbeat"></i></span>
+                        <div>
+                            <span class="fw-bold fs-6 text-white">HemoPulse</span>
+                            <span class="text-muted-custom extra-small ms-2">| 24/7 Emergency Dispatch</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-4 extra-small">
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#aboutUsModal"><i class="fas fa-info-circle me-1 text-info"></i> About Us</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#connectUsModal"><i class="fas fa-headset me-1 text-danger"></i> Connect Us</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal"><i class="fas fa-user-shield me-1 text-success"></i> Privacy Policy</a>
+                        <a href="javascript:void(0)" class="footer-link-active" data-bs-toggle="modal" data-bs-target="#termsModal"><i class="fas fa-file-contract me-1 text-warning"></i> Terms of Service</a>
+                    </div>
+
+                    <div class="extra-small text-muted-custom">&copy; 2026 HemoPulse Ecosystem</div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal fade" id="aboutUsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-info"><i class="fas fa-info-circle me-2"></i>About HemoPulse</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p><strong>HemoPulse</strong> is an automated emergency healthcare response platform operating on strict First-In, First-Out (FIFO) inventory algorithms. It connects registered regional hospitals and voluntary donors into an integrated precision life-support grid.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="connectUsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content lp-card border-0 text-center p-3">
+                <div class="modal-header border-bottom border-secondary border-opacity-25 pb-2">
+                    <h5 class="modal-title fw-bold text-danger"><i class="fas fa-headset me-2"></i>HemoPulse Control Room</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small pt-3">
+                    <p class="text-muted-custom mb-1">24/7 Toll-Free Emergency Dispatch Hotline</p>
+                    <a href="tel:+916370133580" class="fw-bold text-danger fs-5 d-block text-decoration-none my-2">
+                        <i class="fas fa-phone-alt me-2"></i> 1800-889-7853
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="privacyPolicyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-success"><i class="fas fa-user-shield me-2"></i>Privacy Policy</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p>Donor medical records and emergency hospital dispatch logs are maintained under strict healthcare database encryption standards to ensure total confidentiality.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="termsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content lp-card border-0">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold text-warning"><i class="fas fa-file-contract me-2"></i>Terms of Service</h5>
+                    <button type="button" class="btn-close drawer-close-btn" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white small" style="line-height:1.7;">
+                    <p>Voluntary blood donations and emergency dispatches are governed strictly by component shelf-life rules and verified hospital network requests.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            let currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            let newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hemopulse_theme', newTheme);
+            updateToggleUI(newTheme);
+        }
+
+        function updateToggleUI(theme) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (icon && text) {
+                if (theme === 'light') {
+                    icon.className = 'fas fa-sun text-warning'; text.innerText = 'Light Mode';
+                } else {
+                    icon.className = 'fas fa-moon text-theme'; text.innerText = 'Dark Mode';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeTheme = localStorage.getItem('hemopulse_theme') || 'dark';
+            updateToggleUI(activeTheme);
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/bg_animations.js') }}"></script>
+</body>
+</html>
